@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    get_verify: true
+    get_base_download_url: https://releases.hashicorp.com/vagrant/2.2.6
+    get_target_file: vagrant_2.2.6_x86_64.deb
+    get_gpg_key: 51852D87348FFC4C
+    get_key_server: keyserver.ubuntu.com
+    get_sig_file: vagrant_2.2.6_SHA256SUMS.sig
+    get_checksum_file: vagrant_2.2.6_SHA256SUMS
+  roles:
+    - role: get-and-verify

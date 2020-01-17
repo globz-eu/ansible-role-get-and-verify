@@ -1,0 +1,9 @@
+---
+get_download_directory: /tmp
+get_base_download_url: ""
+get_target_file: ""
+get_verify: false
+get_gpg_key: ""
+get_key_server: ""
+get_sig_file: ""
+get_checksum_file: ""

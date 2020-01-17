@@ -1,0 +1,11 @@
+---
+- name: verify
+  include_tasks: verify.yml
+  when: get_verify | bool
+
+- name: download target file and verify checksum
+  get_url:
+    url: "{{ get_base_download_url }}/{{ get_target_file }}"
+    dest: "{{ get_download_directory }}/{{ get_target_file }}"
+    checksum: "{% if get_verify %}sha256:{{ checksum.stdout }}{% endif %}"
+  when: not get_verify | bool or verify_signature.stdout == "GOOD_SIGNATURE"

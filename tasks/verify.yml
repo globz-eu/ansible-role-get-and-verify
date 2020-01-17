@@ -1,0 +1,61 @@
+---
+- name: install dependencies
+  apt:
+    name: "{% if ansible_distribution_release == 'bionic' %}\
+          gpg\
+          {% elif ansible_distribution_release == 'buster' %}\
+          gnupg\
+          {% endif %}"
+    update_cache: yes
+    cache_valid_time: 3600
+  when:
+    - ansible_distribution_release == "bionic" or
+      ansible_distribution_release == "buster"
+
+- name: check gpg key exists
+  shell: gpg --list-keys {{ get_gpg_key }} || echo -n KEY_MISSING
+  register: key_present
+  changed_when: key_present.stdout == "KEY_MISSING"
+
+- name: add gpg key
+  command: gpg --keyserver keyserver.ubuntu.com --recv {{ get_gpg_key }}
+  when: key_present.stdout == "KEY_MISSING"
+
+- name: get checksum file
+  get_url:
+    url: "{{ get_base_download_url }}/{{ get_checksum_file }}"
+    dest: "{{ get_download_directory }}/{{ get_checksum_file }}"
+  register: checksum_file
+
+- name: get checksum signature file
+  get_url:
+    url: "{{ get_base_download_url }}/{{ get_sig_file }}"
+    dest: "{{ get_download_directory }}/{{ get_sig_file }}"
+
+- name: verify checksum file
+  shell: |
+    set -eo pipefail
+    if [[ $(gpg --verify \
+    {{ get_download_directory }}/{{ get_sig_file }} \
+    {{ get_download_directory }}/{{ get_checksum_file }} 2>&1 \
+    | grep "Good signature") ]]; then
+      echo -n GOOD_SIGNATURE
+    else
+      echo -n BAD_SIGNATURE
+    fi
+  args:
+    executable: /bin/bash
+  register: verify_signature
+  changed_when: verify_signature.stdout == "BAD_SIGNATURE"
+
+- name: get checksum
+  shell: |
+    set -eo pipefail
+    cat {{ get_download_directory }}/{{ get_checksum_file }} \
+    | grep {{ get_target_file }} \
+    | sed -e "s/[[:blank:]]*{{ get_target_file | regex_replace('posix_basic') }}$//"
+  args:
+    executable: /bin/bash
+  register: checksum
+  changed_when: checksum_file.changed
+  when: verify_signature.stdout == "GOOD_SIGNATURE"

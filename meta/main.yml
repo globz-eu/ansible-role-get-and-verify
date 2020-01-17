@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Stefan Dieterle
+  description: Download a file and verify its checksum using a signed checksum file
+  license: license (MIT)
+
+  min_ansible_version: 2.9
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - bionic
+    - xenial
+  - name: Debian
+    versions:
+    - buster
+
+  galaxy_tags: []
+
+dependencies: []
